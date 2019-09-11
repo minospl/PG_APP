@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container" style="padding-top: 100px;">
+        <div class="row">
+            <div class="col-xl-12 text-center">
+                <h1 style="font-weight: 500;font-size: 20px;">
+                    Kurs kupna/sprzedaży Dolara Amerykańskiego(USD).
+                </h1>
+                {{ form_start(formType) }}
+                <span style="margin-top: 15px;">
+                    Wybierz datę (Max: 367 dni):
+                </span>
+                {{ form_widget(formType.startDate) }}
+                {{ form_errors(formType.startDate) }}
+                {{ form_end(formType) }}
+            </div>
+        </div>
+        <div class="row" style="margin-top: 50px; margin-bottom: 50px;">
+            <div class="col-xl-5">
+                {% if exchangeRates != null %}
+                <table class="table table-striped table-bordered">
+                    <thead class="text-center">
+                    <tr>
+                        <th>
+                            Data:
+                        </th>
+                        <th>
+                            Cena Kupna:
+                        </th>
+                        <th>
+                            Cena Sprzedaży
+                        </th>
+                        <th>
+                            Różnica
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for rate in exchangeRates.rates %}
+                        <tr>
+                            <td class="align-middle">
+                                {{ rate.effectiveDate }}
+                            </td>
+                            <td class="align-middle text-right">
+                                {{ rate.ask }}
+                            </td>
+                            <td class="align-middle text-right">
+                                {{ rate.bid }}
+                            </td>
+                            <td class="align-middle">
+                                {% if rate.difference < 0 %}
+                                    <i class="material-icons float-right" style="color: red;">
+                                        arrow_drop_down
+                                    </i>
+                                    <span style="color:red; padding: 2px;" class="float-right">
+                                    {{ rate.difference[:8] }}
+                                    </span>
+                                {% elseif rate.difference > 0 %}
+                                    <i class="material-icons float-right" style="color: #08a708;">
+                                        arrow_drop_up
+                                    </i>
+                                    <span style="color:#08a708; padding: 2px;" class="float-right">
+                                        {{ rate.difference[:7] }}
+                                    </span>
+                                {% else %}
+                                    <span style="color:#2380ff;" class="float-right">
+                                        -
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-xl-7" id="chartContainer"
+                 style="height: 370px; width: 100%;"></div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {% if chartValues != null %}
+        {{ parent() }}
+        <script>
+            window.onload = function () {
+
+                let chart = new CanvasJS.Chart("chartContainer", {
+                    title: {
+                        text: "Wykres Kupna/Sprzedaży Dolara Amerykańskiego(USD)"
+                    },
+                    axisY: {
+                        includeZero: false
+                    },
+                    toolTip: {
+                        shared: true
+                    },
+                    data: [
+                        {
+                            type: "line",
+                            name: "Kupno",
+                            dataPoints: {{ chartValues.Ask|raw }}
+                        },
+                        {
+                            type: "line",
+                            name: "Sprzedaż",
+                            dataPoints: {{ chartValues.Bid|raw }}
+                        }]
+
+                });
+                chart.render();
+
+            }
+        </script>
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    {% endif %}
+{% endblock %}
